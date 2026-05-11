@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relazione – Questo è quanto</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Georgia, serif; background: #0a0a1a; color: #e8e8f0; line-height: 1.7; }
+
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 40px; border-bottom: 1px solid #2a2a4a;
+      font-family: sans-serif; font-size: 14px;
+    }
+    nav a { color: #8888cc; text-decoration: none; }
+    nav a:hover { color: #fff; }
+    .nav-idee { display: flex; gap: 20px; }
+
+    header {
+      text-align: center; padding: 70px 20px 50px;
+      border-bottom: 1px solid #2a2a4a;
+    }
+    .numero { font-size: 80px; color: #1e1e3a; font-family: sans-serif; font-weight: 700; line-height: 1; }
+    h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: normal; color: #fff; margin-bottom: 12px; }
+    .sottotitolo { color: #8888cc; font-size: 1rem; }
+
+    main { max-width: 720px; margin: 0 auto; padding: 60px 20px; }
+
+    h2 {
+      font-size: 0.85rem; font-weight: normal; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #7777bb; margin: 50px 0 14px;
+    }
+    p { font-size: 1.05rem; color: #c8c8e0; margin-bottom: 18px; }
+
+    .citazione {
+      border-left: 3px solid #5555aa; padding: 16px 24px;
+      margin: 36px 0; font-style: italic; color: #aaaacc;
+      background: #12122a; border-radius: 0 8px 8px 0;
+    }
+    .citazione cite { display: block; margin-top: 8px; font-size: 0.85rem; color: #6666aa; font-style: normal; }
+
+    .concetto {
+      background: #12122a; border: 1px solid #2a2a4a;
+      border-radius: 12px; padding: 20px 24px; margin: 12px 0;
+    }
+    .concetto strong { color: #aaaaff; font-size: 0.95rem; display: block; margin-bottom: 6px; }
+    .concetto p { margin: 0; font-size: 0.95rem; color: #9999bb; }
+
+    .nav-bottom {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 70px; padding-top: 30px; border-top: 1px solid #2a2a4a;
+      font-family: sans-serif;
+    }
+    .nav-bottom a { color: #8888cc; text-decoration: none; font-size: 14px; }
+    .nav-bottom a:hover { color: #fff; }
+  </style>
+</head>
+<body>
+
+<!-- CHATBOT -->
+<div id="chat-bubble" onclick="toggleChat()" title="Hai domande sul libro?">⚛</div>
+
+<div id="chat-window">
+  <div id="chat-header">
+    <span>🔭 Guida al libro</span>
+    <button onclick="toggleChat()">✕</button>
+  </div>
+  <div id="chat-messages">
+    <div class="msg bot">
+      Ciao! Sono la tua guida a <em>Questo è quanto</em> 👋<br><br>
+      Puoi chiedermi delle 5 idee del libro, o prova uno dei suggerimenti qui sotto!
+    </div>
+    <div id="suggerimenti">
+      <button class="chip" onclick="chiedi('Di cosa parla il libro?')">📖 Di cosa parla?</button>
+      <button class="chip" onclick="chiedi('Cos\'è la discontinuità?')">⚡ Discontinuità</button>
+      <button class="chip" onclick="chiedi('Cos\'è l\'identità?')">🪞 Identità</button>
+      <button class="chip" onclick="chiedi('Cos\'è il futuro quantistico?')">🔮 Futuro</button>
+      <button class="chip" onclick="chiedi('Cos\'è l\'indeterminazione?')">🌀 Indeterminazione</button>
+      <button class="chip" onclick="chiedi('Cos\'è la relazione quantistica?')">🔗 Relazione</button>
+      <button class="chip" onclick="chiedi('Chi è Piero Martin?')">👨‍🔬 L\'autore</button>
+      <button class="chip" onclick="chiedi('Quali tecnologie usa la quantistica?')">💻 Tecnologia</button>
+    </div>
+  </div>
+  <div id="chat-input-area">
+    <input id="chat-input" type="text" placeholder="Scrivi una domanda..." onkeydown="if(event.key==='Enter') sendMessage()" />
+    <button onclick="sendMessage()">→</button>
+  </div>
+</div>
+
+<style>
+  #chat-bubble {
+    position: fixed; bottom: 28px; right: 28px;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, #5555aa, #3333cc);
+    color: white; font-size: 24px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 1000;
+    box-shadow: 0 4px 20px rgba(80,80,200,0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
+    user-select: none;
+    animation: pulse 2.5s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 4px 20px rgba(80,80,200,0.5); }
+    50% { box-shadow: 0 4px 32px rgba(80,80,200,0.9); }
+  }
+  #chat-bubble:hover { transform: scale(1.1); animation: none; box-shadow: 0 6px 28px rgba(80,80,200,0.8); }
+
+  #chat-window {
+    display: none; position: fixed; bottom: 96px; right: 28px;
+    width: 320px; height: 460px;
+    background: #12122a; border: 1px solid #2a2a4a;
+    border-radius: 16px; z-index: 999; flex-direction: column;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6); overflow: hidden;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #chat-window.open { display: flex; }
+
+  #chat-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #1e1e4a, #2a2a6a);
+    font-family: sans-serif; font-size: 14px; color: #ccccff;
+    border-bottom: 1px solid #2a2a4a; flex-shrink: 0;
+  }
+  #chat-header button { background: none; border: none; color: #8888cc; font-size: 16px; cursor: pointer; }
+  #chat-header button:hover { color: #fff; }
+
+  #chat-messages {
+    flex: 1; overflow-y: auto; padding: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  #chat-messages::-webkit-scrollbar { width: 4px; }
+  #chat-messages::-webkit-scrollbar-thumb { background: #3a3a6a; border-radius: 2px; }
+
+  .msg {
+    font-family: Georgia, serif; font-size: 0.88rem; line-height: 1.55;
+    padding: 10px 14px; border-radius: 12px; max-width: 88%;
+  }
+  .msg.bot { background: #1e1e3a; color: #c8c8e0; border-bottom-left-radius: 4px; align-self: flex-start; }
+  .msg.user { background: linear-gradient(135deg, #3333aa, #5555cc); color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+
+  #suggerimenti {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;
+  }
+  .chip {
+    background: #1e1e3a; border: 1px solid #3a3a6a;
+    color: #aaaadd; font-size: 0.78rem; font-family: sans-serif;
+    border-radius: 20px; padding: 5px 10px;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  .chip:hover { background: #3333aa; color: #fff; border-color: #5555cc; }
+
+  #chat-input-area {
+    display: flex; gap: 8px; padding: 12px;
+    border-top: 1px solid #2a2a4a; background: #0e0e22; flex-shrink: 0;
+  }
+  #chat-input {
+    flex: 1; background: #1a1a3a; border: 1px solid #3a3a6a;
+    border-radius: 8px; padding: 8px 12px;
+    color: #e8e8f0; font-family: Georgia, serif; font-size: 0.9rem; outline: none;
+  }
+  #chat-input:focus { border-color: #6666cc; }
+  #chat-input-area button {
+    background: linear-gradient(135deg, #5555aa, #3333cc);
+    border: none; border-radius: 8px; color: white;
+    font-size: 18px; width: 38px; cursor: pointer; transition: opacity 0.2s;
+  }
+  #chat-input-area button:hover { opacity: 0.85; }
+
+  .typing { display: flex; gap: 4px; align-items: center; padding: 12px 14px; }
+  .typing span {
+    width: 7px; height: 7px; background: #6666aa;
+    border-radius: 50%; animation: bounce 1s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.15s; }
+  .typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes bounce {
+    0%,60%,100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+  }
+</style>
+
+<script>
+  const risposte = [
+
+
+    {
+      parole: ['ciao','salve','hey','buongiorno','buonasera','ciao!'],
+      risposta: 'Ciao! 👋 Sono qui per guidarti nel libro <em>Questo è quanto</em> di Piero Martin. Chiedimi delle 5 idee, dell\'autore o della fisica quantistica in generale!'
+    },
+    {
+      parole: ['libro','questo è quanto','di cosa parla','argomento','trama','struttura'],
+      risposta: '📖 <em>Questo è quanto</em> di Piero Martin spiega la fisica quantistica attraverso 5 idee fondamentali: <strong>discontinuità, identità, futuro, indeterminazione e relazione</strong>. Ogni concetto è collegato alla vita quotidiana, alla storia della scienza e all\'arte, rendendo tutto molto più accessibile.'
+    },
+    {
+      parole: ['discontinuità','discontinuita','quanto','quanti','planck','fotone','discontinuo','energia'],
+      risposta: '⚡ La <strong>discontinuità</strong> è la prima grande idea: la natura non è continua, procede a "salti". L\'energia esiste in pacchetti minimi chiamati <em>quanti</em>. Fu Max Planck nel 1900 a scoprirlo, e poi Einstein nel 1905 applicò l\'idea alla luce — nascono così i <em>fotoni</em>.'
+    },
+    {
+      parole: ['identità','identita','onda','particella','dualismo','young','de broglie','comportamento'],
+      risposta: '🪞 L\'<strong>identità</strong> è la seconda idea: luce e materia non sono solo onde <em>o</em> solo particelle — sono <strong>entrambe le cose</strong>, a seconda di come le osservi. Newton pensava che la luce fosse fatta di particelle, Young che fosse un\'onda. La quantistica dice: tutte e due!'
+    },
+    {
+      parole: ['futuro','probabilità','probabilita','determinismo','schrödinger','schrodinger','newton','previsione','certezza'],
+      risposta: '🔮 Il <strong>futuro</strong> è la terza idea: Newton credeva che il futuro fosse completamente prevedibile. La quantistica lo distrugge: il futuro è fatto di <em>probabilità</em>, non certezze. L\'equazione di Schrödinger dice non <em>dove</em> sarà una particella, ma quanto è <em>probabile</em> trovarla in un certo posto.'
+    },
+    {
+      parole: ['indeterminazione','heisenberg','posizione','velocità','velocita','incertezza','misura','principio'],
+      risposta: '🌀 L\'<strong>indeterminazione</strong> è la quarta idea: il principio di Heisenberg (1927) dice che è impossibile conoscere allo stesso tempo posizione e velocità di una particella con precisione totale. Non è colpa degli strumenti — è un limite <em>fondamentale della natura</em>!'
+    },
+    {
+      parole: ['relazione','entanglement','intreccio','correlazione','distanza','spooky','collegamento'],
+      risposta: '🔗 La <strong>relazione</strong> è la quinta idea: due particelle possono essere "intrecciate" così che misurarne una cambia istantaneamente l\'altra, anche a grande distanza. Einstein lo chiamò <em>"azione fantasma a distanza"</em> e non ci credeva — ma gli esperimenti gli hanno dato torto!'
+    },
+    {
+      parole: ['autore','martin','chi ha scritto','scrittore','fisico','chi è'],
+      risposta: '👨‍🔬 <strong>Piero Martin</strong> è un fisico sperimentale italiano, professore all\'Università di Padova. Ha lavorato al progetto di fusione nucleare JET in Inghilterra. In questo libro usa la sua esperienza per spiegare la quantistica in modo accessibile a tutti.'
+    },
+    {
+      parole: ['tecnologia','smartphone','laser','computer','transistor','applicazione','applicazioni','medicina','utilità'],
+      risposta: '💻 La fisica quantistica è alla base di quasi tutta la tecnologia moderna: i <strong>transistor</strong> nei computer e smartphone, i <strong>laser</strong>, la <strong>risonanza magnetica</strong> in medicina, i pannelli solari. Senza la quantistica il mondo tecnologico di oggi non esisterebbe!'
+    },
+    {
+      parole: ['helgoland','isola','mare del nord','rifugio','febbre da fieno'],
+      risposta: '🏝️ <strong>Helgoland</strong> è un\'isoletta nel Mare del Nord dove Heisenberg si rifugiò nel 1925 per sfuggire alla febbre da fieno. In quella solitudine costruì le basi matematiche della meccanica quantistica moderna — una delle scoperte più importanti del Novecento!'
+    },
+    {
+      parole: ['einstein','albert','relatività','relativita','e=mc2','annus mirabilis'],
+      risposta: '🌟 <strong>Albert Einstein</strong> è uno dei protagonisti del libro. Nel 1905, il suo <em>annus mirabilis</em>, pubblicò articoli rivoluzionari: spiegò l\'effetto fotoelettrico con i quanti di luce (per cui vinse il Nobel), e formulò la relatività speciale con la celebre formula E=mc².'
+    },
+    {
+      parole: ['bohr','niels','copenaghen','modello atomico','orbite','atomo'],
+      risposta: '⚛️ <strong>Niels Bohr</strong> propose nel 1913 un modello dell\'atomo con orbite discrete per gli elettroni — come pianeti intorno al Sole. Fu un passo fondamentale, anche se la meccanica quantistica successiva avrebbe superato anche questo modello. Bohr era anche... portiere di calcio!'
+    },
+    {
+      parole: ['venezia','mosaico','san marco','basilica','arte'],
+      risposta: '🎨 Martin usa i <strong>mosaici di San Marco a Venezia</strong> come metafora perfetta della discontinuità: da lontano sembrano continui, ma avvicinandosi si vedono le singole tessere. Così è la natura: a scale grandi sembra continua, ma a livello quantistico è fatta di "pezzi" discreti.'
+    },
+    {
+      parole: ['difficile','capire','complicato','non capisco','strano','assurdo','impossibile','confuso'],
+      risposta: '😅 Non preoccuparti! Anche il premio Nobel Richard Feynman disse: <em>"Credo di poter dire con sicurezza che nessuno ancora comprende la meccanica quantistica"</em>. È normale trovarlo strano — la quantistica sfida il senso comune. L\'importante è capire le idee di fondo!'
+    },
+    {
+      parole: ['consiglio','vale la pena','bello','interessante','leggere','voto','opinione'],
+      risposta: '⭐⭐⭐⭐⭐ Assolutamente sì! Martin è bravissimo a usare metafore di vita quotidiana — Venezia, la musica, i treni — per spiegare concetti difficilissimi. È un libro che fa venir voglia di sapere di più sulla fisica!'
+    },
+    {
+      parole: ['quante pagine','pagine','lungo','breve','quanto è lungo'],
+      risposta: '📄 Il libro è abbastanza snello: circa <strong>150 pagine</strong> più appendici. Si legge bene e non è pesante — ogni capitolo corrisponde a una delle 5 idee fondamentali.'
+    },
+    {
+      parole: ['massive attack','musica','canzone','splitting the atom','brano'],
+      risposta: '🎵 Martin apre il libro con <strong>Massive Attack</strong> e la canzone <em>Splitting the Atom</em> (2010). Usa spesso riferimenti musicali e artistici per avvicinare la fisica alla cultura comune — un approccio originale e molto efficace!'
+    },
+    {
+      parole: ['grazie','perfetto','capito','ottimo','bravo','fantastico'],
+      risposta: 'Prego! 😊 Se hai altre domande sul libro o sulla fisica quantistica, sono qui. In bocca al lupo per il tuo compito! 🍀'
+    },
+  ];
+
+  const fallback = [
+    'Hmm, non ho una risposta su questo! Prova a chiedermi di una delle 5 idee: <strong>discontinuità, identità, futuro, indeterminazione</strong> o <strong>relazione</strong>. 🌀',
+    'Non sono sicuro! Puoi riformulare? Oppure usa i tasti suggeriti sopra per esplorare i temi del libro. ⚛',
+    'Questa va oltre le mie conoscenze! Prova con qualcosa sulla fisica quantistica o sulle idee del libro. 🔭',
+    'Non ho trovato una risposta precisa. Prova a chiedere di <strong>Planck, Einstein, Heisenberg</strong> o di uno dei 5 capitoli! 📖'
+  ];
+
+  let fallbackIndex = 0;
+
+  function toggleChat() {
+    document.getElementById('chat-window').classList.toggle('open');
+  }
+
+  function chiedi(testo) {
+    document.getElementById('chat-input').value = testo;
+    sendMessage();
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+  
+    const sugg = document.getElementById('suggerimenti');
+    if (sugg) sugg.style.display = 'none';
+
+    addMessage(text, 'user');
+    input.value = '';
+
+  
+    const typing = document.createElement('div');
+    typing.className = 'msg bot typing';
+    typing.id = 'typing-indicator';
+    typing.innerHTML = '<span></span><span></span><span></span>';
+    document.getElementById('chat-messages').appendChild(typing);
+    scrollToBottom();
+
+    setTimeout(() => {
+      document.getElementById('typing-indicator')?.remove();
+      const risposta = trovaRisposta(text.toLowerCase());
+      addMessage(risposta, 'bot');
+    }, 700);
+  }
+
+  function trovaRisposta(testo) {
+    for (const r of risposte) {
+      if (r.parole.some(p => testo.includes(p))) return r.risposta;
+    }
+    const f = fallback[fallbackIndex % fallback.length];
+    fallbackIndex++;
+    return f;
+  }
+
+  function addMessage(text, type) {
+    const msgs = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = 'msg ' + type;
+    div.innerHTML = text;
+    msgs.appendChild(div);
+    scrollToBottom();
+    return div;
+  }
+
+  function scrollToBottom() {
+    const msgs = document.getElementById('chat-messages');
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+</script>
+
+
+
+
+  
+  <nav>
+    <a href="index.html">← Torna alla recensione</a>
+    <div class="nav-idee">
+      <a href="discontinuita.html">Discontinuità</a>
+      <a href="identita.html">Identità</a>
+      <a href="futuro.html">Futuro</a>
+      <a href="indeterminazione.html">Indeterminazione</a>
+      <a href="relazione.html">Relazione</a>
+    </div>
+  </nav>
+
+  <header>
+    <div class="numero">5</div>
+    <h1>Relazione</h1>
+    <p class="sottotitolo">Le particelle si intrecciano: misurarne una cambia l'altra, ovunque sia</p>
+  </header>
+
+  <main>
+
+    <h2>L'idea centrale</h2>
+    <p>
+      L'ultima grande idea del libro è forse la più sorprendente: due particelle quantistiche 
+      possono diventare "entangled" — intrecciate — in modo tale che misurare una di esse 
+      influenza istantaneamente l'altra, anche se si trovano a distanza enorme. 
+      Non si tratta di comunicazione o di forza: è una correlazione profonda 
+      tessuta nel tessuto stesso della realtà quantistica.
+    </p>
+
+    <div class="citazione">
+      La meccanica quantistica è nata da un lavoro d'insieme, come i fiori multicolori 
+      che in poche albe di primavera crescono e sbocciano e vanno a decorare un prato.
+      <cite>— Piero Martin, Questo è quanto</cite>
+    </div>
+
+    <h2>Cosa significa "essere in relazione"</h2>
+    <p>
+      Nella fisica classica due oggetti interagiscono tramite forze: gravità, elettromagnetismo. 
+      Nella fisica quantistica esiste qualcosa di diverso e più radicale: 
+      l'entanglement. Due particelle che hanno interagito rimangono collegate 
+      in modo non locale — le loro proprietà sono correlate indipendentemente dalla distanza.
+    </p>
+    <p>
+      Quando misuriamo una particella intrecciata e scopriamo il suo stato, 
+      l'altra particella "sa" immediatamente qual è il suo stato corrispondente, 
+      anche se si trova dall'altra parte dell'universo. Einstein chiamò questo 
+      fenomeno "spooky action at a distance" — azione fantasma a distanza — 
+      e non lo accettava. Eppure gli esperimenti hanno dato ragione alla quantistica.
+    </p>
+
+    <h2>I concetti chiave</h2>
+    <div class="concetto">
+      <strong>🔗 Entanglement (intreccio quantistico)</strong>
+      <p>Due particelle che hanno interagito restano correlate: misurare lo stato 
+      di una determina istantaneamente lo stato dell'altra, ovunque si trovi.</p>
+    </div>
+    <div class="concetto">
+      <strong>📡 Non-località</strong>
+      <p>Le correlazioni quantistiche non dipendono dalla distanza. 
+      Non viola la relatività perché non si trasmette informazione — 
+      è una correlazione nelle proprietà, non un segnale.</p>
+    </div>
+    <div class="concetto">
+      <strong>💻 Applicazioni future</strong>
+      <p>L'entanglement è alla base del calcolo quantistico e della crittografia quantistica: 
+      tecnologie che potrebbero rivoluzionare informatica e sicurezza nei prossimi decenni.</p>
+    </div>
+
+    <h2>Perché è importante</h2>
+    <p>
+      La relazione come concetto quantistico ci dice che il mondo non è fatto 
+      di oggetti isolati con proprietà indipendenti. Le particelle sono definite 
+      dalle loro relazioni con le altre. È una visione profondamente diversa 
+      da quella della fisica classica — e forse, come suggerisce Martin, 
+      risuona anche con qualcosa di umano: siamo ciò che siamo anche 
+      grazie alle relazioni che ci legano agli altri.
+    </p>
+
+    <div class="citazione">
+      Discontinuità, identità, futuro, indeterminazione, relazione: 
+      cinque parole che appartengono anche al vocabolario della nostra umanità.
+      <cite>— Piero Martin, Questo è quanto</cite>
+    </div>
+
+    <div class="nav-bottom">
+      <a href="indeterminazione.html">← Indeterminazione</a>
+      <a href="index.html">Torna alla recensione →</a>
+    </div>
+
+  </main>
+</body>
+</html>
